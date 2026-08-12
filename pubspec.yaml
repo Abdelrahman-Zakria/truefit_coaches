@@ -1,0 +1,51 @@
+name: truefit_coaches
+description: "True Fit Coaches App - Specialized side of the fitness ecosystem."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_bloc: ^9.1.0
+  equatable: ^2.0.7
+  google_fonts: ^7.0.0
+  lucide_icons_flutter: ^3.1.15
+  shimmer: ^3.0.0
+  fl_chart: ^0.70.2
+  intl: ^0.20.2
+  flutter_localizations:
+    sdk: flutter
+  path_provider: ^2.1.2
+  firebase_core: ^4.11.0
+  firebase_auth: ^6.5.4
+  cloud_firestore: ^6.6.0
+  cached_network_image: ^3.4.1
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  shared_preferences: ^2.3.2
+  dartz: 0.10.1
+  cloud_functions: 6.3.5
+  firebase_messaging: ^16.5.0
+  flutter_local_notifications: ^18.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/Profile Pic.png"
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/

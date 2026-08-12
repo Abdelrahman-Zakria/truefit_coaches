@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "779265179121",
+    "project_id": "true-fit-52715",
+    "storage_bucket": "true-fit-52715.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779265179121:android:11a3cc4d723076e9a85850",
+        "android_client_info": {
+          "package_name": "com.truefit.truefit_coaches"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd9ucf4dFCRE6WiMdLj1ZHW5BhDYdgcFM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779265179121:android:228c5ec9283cf91ca85850",
+        "android_client_info": {
+          "package_name": "com.truefit.truefit_users"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd9ucf4dFCRE6WiMdLj1ZHW5BhDYdgcFM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779265179121:android:f5c684a8b43ab1b0a85850",
+        "android_client_info": {
+          "package_name": "com.truefit.truefitcoaches"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd9ucf4dFCRE6WiMdLj1ZHW5BhDYdgcFM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
