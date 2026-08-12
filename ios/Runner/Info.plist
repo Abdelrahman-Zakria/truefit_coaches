@@ -53,6 +53,8 @@
 	<string>True Fit Coaches requires location access to verify attendance and check-in locations.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>True Fit Coaches requires location access to verify attendance and check-in locations.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>True Fit Coaches requires location access to verify attendance and check-in locations while you are on shift.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
