@@ -1,8 +1,8 @@
 # Standard Flutter Podfile for Truefit Coaches
 platform :ios, '13.0'
 
-# The next line is required for Flutter plugins to work.
-load File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'podhelper.rb')
+# Standard path to podhelper.rb
+load File.expand_path(File.join('Flutter', 'podhelper.rb'), __dir__)
 
 target 'Runner' do
   use_frameworks!
@@ -20,6 +20,7 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
 
     target.build_configurations.each do |config|
+      # Align deployment target to 13.0 for all pods
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
     end
   end
