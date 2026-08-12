@@ -22,7 +22,7 @@ dependencies:
   path_provider: ^2.1.2
   firebase_core: ^4.13.0
   firebase_auth: ^6.5.7
-  cloud_firestore: ^6.6.0
+  cloud_firestore: ^6.8.0
   cached_network_image: ^3.4.1
   geolocator: ^13.0.2
   geocoding: ^3.0.0
