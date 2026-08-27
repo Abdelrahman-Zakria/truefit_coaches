@@ -15,6 +15,7 @@ class ScheduleState extends Equatable {
   final List<PTSession> sessions;
   final List<GymClass> classes;
   final List<WorkShift> shifts;
+  final String? selectedBranchId; // Added
   final bool isLoading;
 
   const ScheduleState({
@@ -24,6 +25,7 @@ class ScheduleState extends Equatable {
     this.sessions = const [],
     this.classes = const [],
     this.shifts = const [],
+    this.selectedBranchId,
     this.isLoading = false,
   });
 
@@ -34,6 +36,8 @@ class ScheduleState extends Equatable {
     List<PTSession>? sessions,
     List<GymClass>? classes,
     List<WorkShift>? shifts,
+    String? selectedBranchId,
+    bool clearSelectedBranchId = false, // Added
     bool? isLoading,
   }) {
     return ScheduleState(
@@ -43,12 +47,13 @@ class ScheduleState extends Equatable {
       sessions: sessions ?? this.sessions,
       classes: classes ?? this.classes,
       shifts: shifts ?? this.shifts,
+      selectedBranchId: clearSelectedBranchId ? null : (selectedBranchId ?? this.selectedBranchId),
       isLoading: isLoading ?? this.isLoading,
     );
   }
 
   @override
-  List<Object?> get props => [weekOffset, selectedDate, filter, sessions, classes, shifts, isLoading];
+  List<Object?> get props => [weekOffset, selectedDate, filter, sessions, classes, shifts, selectedBranchId, isLoading];
 }
 
 class ScheduleCubit extends Cubit<ScheduleState> {
@@ -87,6 +92,14 @@ class ScheduleCubit extends Cubit<ScheduleState> {
 
   void setFilter(ScheduleFilter filter) {
     emit(state.copyWith(filter: filter));
+  }
+
+  void setSelectedBranch(String? branchId) {
+    if (branchId == null) {
+      emit(state.copyWith(clearSelectedBranchId: true));
+    } else {
+      emit(state.copyWith(selectedBranchId: branchId));
+    }
   }
 
   @override

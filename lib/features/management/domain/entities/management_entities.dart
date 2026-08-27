@@ -23,73 +23,99 @@ class CoachShift extends Equatable {
 
 class InBodySlot extends Equatable {
   final String id;
-  final String date;
-  final String time;
-  final String supervisorId;
-  final String supervisorName;
-  final String? memberName;
+  final String coachId;
+  final String coachName;
+  final String day;
+  final String startTime;
+  final String endTime;
+  final bool isOff;
 
   const InBodySlot({
     required this.id,
-    required this.date,
-    required this.time,
-    required this.supervisorId,
-    required this.supervisorName,
-    this.memberName,
+    required this.coachId,
+    required this.coachName,
+    required this.day,
+    required this.startTime,
+    required this.endTime,
+    required this.isOff,
   });
 
   @override
-  List<Object?> get props => [id, date, time, supervisorId, supervisorName, memberName];
+  List<Object?> get props => [id, coachId, coachName, day, startTime, endTime, isOff];
 }
 
 class GymClass extends Equatable {
   final String id;
-  final String name;
-  final String instructor;
-  final String instructorId;
-  final String date;
+  final Map<String, dynamic> name;
+  final String coachName;
+  final String instructorId; // Added back
+  final String branchId;
+  final String branchName;
+  final String day;
   final String time;
   final String duration;
-  final String location;
-  final int capacity;
+  final int maxCapacity;
   final int enrolled;
   final bool isOpen;
+  final String type;
+  final bool isFree;
+  final Map<String, dynamic>? pricing;
 
   const GymClass({
     required this.id,
     required this.name,
-    required this.instructor,
+    required this.coachName,
     required this.instructorId,
-    required this.date,
+    required this.branchId,
+    required this.branchName,
+    required this.day,
     required this.time,
     required this.duration,
-    required this.location,
-    required this.capacity,
+    required this.maxCapacity,
     required this.enrolled,
     required this.isOpen,
+    required this.type,
+    required this.isFree,
+    this.pricing,
   });
 
   @override
-  List<Object?> get props => [id, name, instructor, instructorId, date, time, duration, location, capacity, enrolled, isOpen];
+  List<Object?> get props => [
+        id,
+        name,
+        coachName,
+        instructorId,
+        branchId,
+        branchName,
+        day,
+        time,
+        duration,
+        maxCapacity,
+        enrolled,
+        isOpen,
+        type,
+        isFree,
+        pricing,
+      ];
 }
 
 class Deduction extends Equatable {
   final String id;
   final String coachId;
-  final double amount;
+  final double days; // Changed from amount
   final String reason;
   final String date;
 
   const Deduction({
     required this.id,
     required this.coachId,
-    required this.amount,
+    required this.days,
     required this.reason,
     required this.date,
   });
 
   @override
-  List<Object?> get props => [id, coachId, amount, reason, date];
+  List<Object?> get props => [id, coachId, days, reason, date];
 }
 
 class CoachLeave extends Equatable {
@@ -119,4 +145,21 @@ class CoachLeave extends Equatable {
 
   @override
   List<Object?> get props => [id, coachId, coachName, coachGender, leaveDate, createdAt, reason, status, approvedBy, leaveType];
+}
+
+class Branch extends Equatable {
+  final String id;
+  final String name;
+  final String lat;
+  final String lng;
+
+  const Branch({
+    required this.id,
+    required this.name,
+    required this.lat,
+    required this.lng,
+  });
+
+  @override
+  List<Object?> get props => [id, name, lat, lng];
 }

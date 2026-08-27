@@ -24,9 +24,33 @@ class LocationService {
     if (!hasPermission) return null;
 
     try {
-      return await Geolocator.getCurrentPosition();
+      // Attempt to get high accuracy position
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      // If accuracy is poor (e.g., > 50 meters), try one more time to get a better fix
+      if (position.accuracy > 50) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            timeLimit: Duration(seconds: 10),
+          ),
+        );
+      }
+      
+      return position;
     } catch (e) {
-      return null;
+      // Fallback to last known position if current fails
+      try {
+        return await Geolocator.getLastKnownPosition();
+      } catch (_) {
+        return null;
+      }
     }
   }
 
@@ -42,5 +66,9 @@ class LocationService {
     );
 
     return distance <= radiusInMeters;
+  }
+
+  static double getDistance(double startLat, double startLong, double endLat, double endLong) {
+    return Geolocator.distanceBetween(startLat, startLong, endLat, endLong);
   }
 }

@@ -55,6 +55,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 _buildWeekStrip(state),
                 const Divider(color: Colors.white10, height: 1),
                 _buildDayHeader(state, l10n),
+                _buildBranchFilter(state, l10n), // Added
                 _buildFilterTabs(state, l10n),
                 Expanded(
                   child: _buildTimeline(state, l10n),
@@ -114,7 +115,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           final isToday = ds == today;
           
           final daySessions = state.sessions.where((s) => s.date == ds).toList();
-          final dayClasses = state.classes.where((c) => c.date == ds).toList();
+          final dayClasses = state.classes.where((c) => c.day == DateFormat('EEEE').format(date)).toList();
           final dayShift = state.shifts.where((s) => s.date == DateFormat('EEE').format(date)).firstOrNull;
 
           return Expanded(
@@ -194,7 +195,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final dayLabel = DateFormat('EEEE, MMM d').format(date);
     
     final daySessions = state.sessions.where((s) => s.date == state.selectedDate).toList();
-    final dayClasses = state.classes.where((c) => c.date == state.selectedDate).toList();
+    final dayClasses = state.classes.where((c) => c.day == DateFormat('EEEE').format(date)).toList();
     final dayShift = state.shifts.where((s) => s.date == DateFormat('EEE').format(date)).firstOrNull;
 
     return Padding(
@@ -257,6 +258,61 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  Widget _buildBranchFilter(ScheduleState state, AppLocalizations l10n) {
+    // Extract unique branches from classes for the filter
+    final availableBranches = <String, String>{}; // id -> display name
+    for (var cls in state.classes) {
+      if (cls.branchId == 'Rz6GfLSPaCEF0GUlOUc3' || cls.branchId == 'branch_1') {
+        availableBranches['Rz6GfLSPaCEF0GUlOUc3'] = l10n.translate('branch_1');
+      } else if (cls.branchId == 'f6Rd0gPflSRuW47UJFuD' || cls.branchId == 'branch_2') {
+        availableBranches['f6Rd0gPflSRuW47UJFuD'] = l10n.translate('branch_2');
+      } else {
+        availableBranches[cls.branchId] = cls.branchName;
+      }
+    }
+
+    if (availableBranches.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _buildBranchChip(null, l10n.translate('see_all'), state.selectedBranchId == null),
+          ...availableBranches.entries.map((e) => _buildBranchChip(e.key, e.value, state.selectedBranchId == e.key)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBranchChip(String? id, String label, bool isSelected) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: ChoiceChip(
+        label: Text(
+          label.toUpperCase(),
+          style: GoogleFonts.barlowCondensed(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: isSelected ? Colors.white : Colors.white38,
+          ),
+        ),
+        selected: isSelected,
+        onSelected: (val) {
+          if (val) context.read<ScheduleCubit>().setSelectedBranch(id);
+        },
+        selectedColor: AppTheme.primaryRed,
+        backgroundColor: const Color(0xFF141414),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: isSelected ? AppTheme.primaryRed : Colors.white.withValues(alpha: 0.06)),
+        ),
+        showCheckmark: false,
+      ),
+    );
+  }
+
   Widget _buildFilterTabs(ScheduleState state, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -304,7 +360,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ? state.sessions.where((s) => s.date == ds).toList()
         : <PTSession>[];
     final filteredClasses = state.filter == ScheduleFilter.all || state.filter == ScheduleFilter.classes
-        ? state.classes.where((c) => c.date == ds).toList()
+        ? state.classes.where((c) {
+            final isCorrectDay = c.day == DateFormat('EEEE').format(DateTime.parse(ds));
+            final isCorrectBranch = state.selectedBranchId == null || c.branchId == state.selectedBranchId;
+            return isCorrectDay && isCorrectBranch;
+          }).toList()
         : <GymClass>[];
     final dayShift = state.filter == ScheduleFilter.all || state.filter == ScheduleFilter.shifts
         ? state.shifts.where((s) => s.date == DateFormat('EEE').format(DateTime.parse(ds))).firstOrNull
@@ -322,12 +382,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         onTap: () => _showEventDetails(s, l10n),
       )),
       ...filteredClasses.map((c) => _EventData(
-        title: c.name,
+        title: c.name[l10n.locale.languageCode] ?? c.name['en'] ?? '',
         time: c.time,
         duration: int.parse(c.duration),
         type: l10n.translate('today_classes').toUpperCase(),
         color: Colors.blue[400]!,
-        location: c.location,
+        location: c.branchId == 'branch_1' ? l10n.translate('branch_1') : (c.branchId == 'branch_2' ? l10n.translate('branch_2') : c.branchName),
         isClass: true,
         startingSoon: false,
         onTap: () => _showEventDetails(c, l10n),
@@ -611,7 +671,9 @@ class _EventDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPT = event is PTSession;
-    final title = isPT ? (event as PTSession).memberName : (event as GymClass).name;
+    final String title = isPT 
+        ? (event as PTSession).memberName 
+        : ((event as GymClass).name[l10n.locale.languageCode] ?? (event as GymClass).name['en'] ?? '');
     final type = isPT ? "PT SESSION" : l10n.translate('today_classes').toUpperCase();
     final color = isPT ? AppTheme.primaryRed : Colors.blue[400]!;
 
@@ -635,8 +697,8 @@ class _EventDetailSheet extends StatelessWidget {
             children: [
               _buildDetailPill(LucideIcons.clock, l10n.translate('time').toUpperCase(), isPT ? (event as PTSession).time : (event as GymClass).time),
               _buildDetailPill(LucideIcons.timer, l10n.translate('duration').toUpperCase(), "${isPT ? (event as PTSession).duration : (event as GymClass).duration} MIN"),
-              _buildDetailPill(LucideIcons.mapPin, l10n.translate('location').toUpperCase(), isPT ? (event as PTSession).location : (event as GymClass).location),
-              _buildDetailPill(isPT ? LucideIcons.checkCircle : LucideIcons.users, isPT ? l10n.translate('status').toUpperCase() : l10n.translate('instructor').toUpperCase(), isPT ? (event as PTSession).status : (event as GymClass).instructor),
+              _buildDetailPill(LucideIcons.mapPin, l10n.translate('location').toUpperCase(), isPT ? (event as PTSession).location : ((event as GymClass).branchId == 'branch_1' ? l10n.translate('branch_1') : ((event as GymClass).branchId == 'branch_2' ? l10n.translate('branch_2') : (event as GymClass).branchName))),
+              _buildDetailPill(isPT ? LucideIcons.checkCircle : LucideIcons.users, isPT ? l10n.translate('status').toUpperCase() : l10n.translate('instructor').toUpperCase(), isPT ? (event as PTSession).status : (event as GymClass).coachName),
             ],
           ),
           if (!isPT) ...[
@@ -671,7 +733,7 @@ class _EventDetailSheet extends StatelessWidget {
   }
 
   Widget _buildCapacityCard(GymClass cls, AppLocalizations l10n) {
-    final progress = cls.enrolled / cls.capacity;
+    final progress = cls.maxCapacity > 0 ? cls.enrolled / cls.maxCapacity : 0.0;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(16)),
@@ -681,7 +743,7 @@ class _EventDetailSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(l10n.translate('capacity').toUpperCase(), style: GoogleFonts.barlowCondensed(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white38)),
-              Text("${cls.enrolled} / ${cls.capacity}", style: GoogleFonts.jetBrainsMono(fontSize: 14, fontWeight: FontWeight.bold, color: progress >= 1 ? AppTheme.primaryRed : Colors.green)),
+              Text("${cls.enrolled} / ${cls.maxCapacity}", style: GoogleFonts.jetBrainsMono(fontSize: 14, fontWeight: FontWeight.bold, color: progress >= 1 ? AppTheme.primaryRed : Colors.green)),
             ],
           ),
           const SizedBox(height: 12),

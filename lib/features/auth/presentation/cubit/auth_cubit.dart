@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dartz/dartz.dart';
 import 'package:truefit_coaches/core/error/failures.dart';
+import 'package:truefit_coaches/core/services/notification_service.dart';
 
 abstract class AuthState {}
 
@@ -117,6 +118,12 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> authenticate(Map<String, dynamic> coach) async {
     await _prefs.setString(_coachKey, jsonEncode(coach));
+    
+    // Sync FCM Token for Notifications
+    if (coach['uid'] != null) {
+      NotificationService.updateToken(coach['uid']);
+    }
+    
     emit(AuthAuthenticated(coach));
   }
 

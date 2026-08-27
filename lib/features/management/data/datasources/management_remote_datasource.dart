@@ -7,10 +7,15 @@ abstract class ManagementRemoteDataSource {
   Stream<List<GymClassModel>> watchClasses();
   Stream<List<DeductionModel>> watchDeductions();
   Stream<List<CoachLeaveModel>> watchLeaves();
+  Stream<List<BranchModel>> watchBranches(); // Added
   
   Future<void> updateShift(CoachShiftModel shift);
-  Future<void> addInBodySlot(InBodySlotModel slot);
+  Future<void> updateInBodySlot(InBodySlotModel slot);
   Future<void> toggleClass(String classId, bool isOpen);
+  Future<void> updateClassCapacity(String classId, int capacity);
+  Future<void> addClass(GymClassModel gymClass); // Added
+  Future<void> updateClass(GymClassModel gymClass); // Added
+  Future<void> deleteClass(String classId); // Added
   Future<void> addDeduction(DeductionModel deduction);
   Future<void> addLeave(CoachLeaveModel leave);
   Future<void> updateLeaveStatus(String leaveId, String status, String approvedBy);
@@ -55,6 +60,13 @@ class ManagementRemoteDataSourceImpl implements ManagementRemoteDataSource {
   }
 
   @override
+  Stream<List<BranchModel>> watchBranches() {
+    return _firestore.collection('branches').snapshots().map(
+      (snapshot) => snapshot.docs.map((doc) => BranchModel.fromFirestore(doc)).toList(),
+    );
+  }
+
+  @override
   Future<void> updateShift(CoachShiftModel shift) async {
     // Check if a shift for this coach and day already exists
     final query = await _firestore
@@ -71,13 +83,35 @@ class ManagementRemoteDataSourceImpl implements ManagementRemoteDataSource {
   }
 
   @override
-  Future<void> addInBodySlot(InBodySlotModel slot) async {
-    await _firestore.collection('InBody_Schedule').add(slot.toFirestore());
+  Future<void> updateInBodySlot(InBodySlotModel slot) async {
+    // Deterministic ID for weekly recurring
+    final docId = "${slot.coachId}_${slot.day}_inbody";
+    await _firestore.collection('InBody_Schedule').doc(docId).set(slot.toFirestore(), SetOptions(merge: true));
   }
 
   @override
   Future<void> toggleClass(String classId, bool isOpen) async {
     await _firestore.collection('Gym_Classes').doc(classId).update({'isOpen': isOpen});
+  }
+
+  @override
+  Future<void> updateClassCapacity(String classId, int capacity) async {
+    await _firestore.collection('Gym_Classes').doc(classId).update({'max_capacity': capacity});
+  }
+
+  @override
+  Future<void> addClass(GymClassModel gymClass) async {
+    await _firestore.collection('Gym_Classes').add(gymClass.toFirestore());
+  }
+
+  @override
+  Future<void> updateClass(GymClassModel gymClass) async {
+    await _firestore.collection('Gym_Classes').doc(gymClass.id).update(gymClass.toFirestore());
+  }
+
+  @override
+  Future<void> deleteClass(String classId) async {
+    await _firestore.collection('Gym_Classes').doc(classId).delete();
   }
 
   @override

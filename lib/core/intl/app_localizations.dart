@@ -41,7 +41,7 @@ class AppLocalizations {
       'notifications': 'Notifications', 'mark_all_read': 'Mark All Read',
       'management': 'Management', 'shift_planner': 'Shift Planner',
       'inbody_schedule': 'InBody Schedule', 'class_management': 'Classes',
-      'salary_deductions': 'Salary & Deductions', 'logout': 'Log Out',
+      'salary_deductions': 'Deductions', 'logout': 'Log Out',
       'sign_in': 'Sign In', 'email': 'Email', 'password': 'Password',
       'welcome_back': 'Welcome Back', 'coach_portal': 'Coach Portal',
       'today': 'Today', 'name': 'Name', 'location': 'Location', 'time': 'Time',
@@ -88,6 +88,9 @@ class AppLocalizations {
       'start_conversation': 'Start the conversation', 'recording': 'Recording…',
       'reply_great_work': 'Great work today!', 'reply_diet_plan': 'Check your new diet plan',
       'reply_check_in': 'Don\'t forget to check in', 'reply_push_harder': 'Let\'s push harder!',
+      'branch_1': 'Branch 1', 'branch_2': 'Branch 2',
+      'paid': 'Paid', 'free': 'Free', 'add_class': 'Add Class',
+      'class_name_en': 'Class Name (EN)', 'class_name_ar': 'Class Name (AR)',
     },
     'ar': {
       'nav_home': 'الرئيسية', 'nav_schedule': 'الجدول', 'nav_members': 'الأعضاء',
@@ -118,7 +121,7 @@ class AppLocalizations {
       'notifications': 'الإشعارات', 'mark_all_read': 'تعليم الكل',
       'management': 'الإدارة', 'shift_planner': 'مخطط الوردية',
       'inbody_schedule': 'جدول إن بودي', 'class_management': 'الكلاسات',
-      'salary_deductions': 'الرواتب والخصومات', 'logout': 'تسجيل الخروج',
+      'salary_deductions': 'الخصومات', 'logout': 'تسجيل الخروج',
       'sign_in': 'دخول', 'email': 'البريد الإلكتروني', 'password': 'كلمة المرور',
       'welcome_back': 'أهلاً بعودتك', 'coach_portal': 'بوابة المدرب',
       'today': 'اليوم', 'name': 'الاسم', 'location': 'الموقع', 'time': 'الوقت',
@@ -165,6 +168,9 @@ class AppLocalizations {
       'start_conversation': 'ابدأ المحادثة', 'recording': 'جاري التسجيل...',
       'reply_great_work': 'عمل رائع اليوم!', 'reply_diet_plan': 'تحقق من خطة نظامك الغذائي الجديد',
       'reply_check_in': 'لا تنسَ تسجيل الحضور', 'reply_push_harder': 'لنضغط بقوة أكبر!',
+      'branch_1': 'فرع 1', 'branch_2': 'فرع 2',
+      'paid': 'مدفوع', 'free': 'مجاني', 'add_class': 'إضافة كلاس',
+      'class_name_en': 'اسم الكلاس (EN)', 'class_name_ar': 'اسم الكلاس (AR)',
     },
   };
 

@@ -45,80 +45,122 @@ class CoachShiftModel extends CoachShift {
 class InBodySlotModel extends InBodySlot {
   const InBodySlotModel({
     required super.id,
-    required super.date,
-    required super.time,
-    required super.supervisorId,
-    required super.supervisorName,
-    super.memberName,
+    required super.coachId,
+    required super.coachName,
+    required super.day,
+    required super.startTime,
+    required super.endTime,
+    required super.isOff,
   });
 
   factory InBodySlotModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return InBodySlotModel(
       id: doc.id,
-      date: data['date'] ?? '',
-      time: data['time'] ?? '',
-      supervisorId: data['supervisorId'] ?? '',
-      supervisorName: data['supervisorName'] ?? '',
-      memberName: data['memberName'],
+      coachId: data['coachId'] ?? data['supervisorId'] ?? '',
+      coachName: data['coachName'] ?? data['supervisorName'] ?? '',
+      day: data['day'] ?? '',
+      startTime: data['startTime'] ?? data['time'] ?? '',
+      endTime: data['endTime'] ?? '',
+      isOff: data['isOff'] ?? false,
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      'date': date,
-      'time': time,
-      'supervisorId': supervisorId,
-      'supervisorName': supervisorName,
-      'memberName': memberName,
+      'coachId': coachId,
+      'coachName': coachName,
+      'day': day,
+      'startTime': startTime,
+      'endTime': endTime,
+      'isOff': isOff,
     };
   }
 }
 
 class GymClassModel extends GymClass {
   const GymClassModel({
-    required super.id,
-    required super.name,
-    required super.instructor,
-    required super.instructorId,
-    required super.date,
-    required super.time,
-    required super.duration,
-    required super.location,
-    required super.capacity,
-    required super.enrolled,
-    required super.isOpen,
-  });
+    required String id,
+    required Map<String, dynamic> name,
+    required String coachName,
+    required String instructorId,
+    required String branchId,
+    required String branchName,
+    required String day,
+    required String time,
+    required String duration,
+    required int maxCapacity,
+    required int enrolled,
+    required bool isOpen,
+    required String type,
+    required bool isFree,
+    Map<String, dynamic>? pricing,
+  }) : super(
+          id: id,
+          name: name,
+          coachName: coachName,
+          instructorId: instructorId,
+          branchId: branchId,
+          branchName: branchName,
+          day: day,
+          time: time,
+          duration: duration,
+          maxCapacity: maxCapacity,
+          enrolled: enrolled,
+          isOpen: isOpen,
+          type: type,
+          isFree: isFree,
+          pricing: pricing,
+        );
 
   factory GymClassModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    
+    // Defensive check for isFree
+    bool isFreeValue = true;
+    if (data.containsKey('is_free')) {
+      isFreeValue = data['is_free'] == true;
+    } else if (data['type'] == 'pt') {
+      isFreeValue = false;
+    }
+
     return GymClassModel(
       id: doc.id,
-      name: CoachShiftModel._parseString(data['name']),
-      instructor: CoachShiftModel._parseString(data['instructor']),
+      name: data['name'] is Map ? Map<String, dynamic>.from(data['name']) : {'en': data['name'] ?? ''},
+      coachName: data['coach_name'] ?? data['instructor'] ?? '',
       instructorId: data['instructorId'] ?? '',
-      date: data['date'] ?? '',
+      branchId: data['branch_id'] ?? '',
+      branchName: data['branch_name'] ?? data['location'] ?? '',
+      day: data['day'] ?? data['date'] ?? '',
       time: data['time'] ?? '',
-      duration: CoachShiftModel._parseString(data['duration']),
-      location: CoachShiftModel._parseString(data['location']),
-      capacity: (data['capacity'] ?? 0).toInt(),
+      duration: data['duration']?.toString() ?? '60',
+      maxCapacity: (data['max_capacity'] ?? data['capacity'] ?? 20).toInt(),
       enrolled: (data['enrolled'] ?? 0).toInt(),
       isOpen: data['isOpen'] ?? false,
+      type: data['type'] ?? 'group',
+      isFree: isFreeValue,
+      pricing: data['pricing'] != null ? Map<String, dynamic>.from(data['pricing']) : null,
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
-      'instructor': instructor,
+      'coach_name': coachName,
+      'instructor': coachName, // Consistency
       'instructorId': instructorId,
-      'date': date,
+      'branch_id': branchId,
+      'branch_name': branchName,
+      'location': branchName, // Consistency
+      'day': day,
       'time': time,
       'duration': duration,
-      'location': location,
-      'capacity': capacity,
+      'max_capacity': maxCapacity,
       'enrolled': enrolled,
       'isOpen': isOpen,
+      'type': type,
+      'is_free': isFree,
+      'pricing': pricing,
     };
   }
 }
@@ -127,7 +169,7 @@ class DeductionModel extends Deduction {
   const DeductionModel({
     required super.id,
     required super.coachId,
-    required super.amount,
+    required super.days,
     required super.reason,
     required super.date,
   });
@@ -137,7 +179,7 @@ class DeductionModel extends Deduction {
     return DeductionModel(
       id: doc.id,
       coachId: data['coachId'] ?? '',
-      amount: (data['amount'] ?? 0.0).toDouble(),
+      days: (data['days'] ?? data['amount'] ?? 0.0).toDouble(), // Support legacy 'amount' as 'days' for now if needed
       reason: data['reason'] ?? '',
       date: data['date'] ?? '',
     );
@@ -146,7 +188,7 @@ class DeductionModel extends Deduction {
   Map<String, dynamic> toFirestore() {
     return {
       'coachId': coachId,
-      'amount': amount,
+      'days': days,
       'reason': reason,
       'date': date,
     };
@@ -194,6 +236,34 @@ class CoachLeaveModel extends CoachLeave {
       'status': status,
       'approvedBy': approvedBy,
       'leaveType': leaveType,
+    };
+  }
+}
+
+class BranchModel extends Branch {
+  const BranchModel({
+    required super.id,
+    required super.name,
+    required super.lat,
+    required super.lng,
+  });
+
+  factory BranchModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return BranchModel(
+      id: doc.id,
+      name: data['name'] ?? '',
+      lat: data['lat']?.toString() ?? '',
+      lng: data['lng']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'id': id,
+      'name': name,
+      'lat': lat,
+      'lng': lng,
     };
   }
 }

@@ -15,7 +15,10 @@ class ManagementState extends Equatable {
   final List<GymClass> classes;
   final List<Deduction> deductions;
   final List<CoachLeave> leaves;
-  final List<Map<String, dynamic>> allCoaches; // Added to store all coach profiles
+  final List<Branch> branches; // Added
+  final List<Map<String, dynamic>> allCoaches;
+  final String? selectedBranchId;
+  final bool? classIsFreeFilter; // Added: null (all), true (free), false (paid)
   final bool isLoading;
   final String? error;
 
@@ -27,6 +30,9 @@ class ManagementState extends Equatable {
     this.allCoaches = const [],
     this.deductions = const [],
     this.leaves = const [],
+    this.branches = const [], // Added
+    this.selectedBranchId,
+    this.classIsFreeFilter, // Added
     this.isLoading = false,
     this.error,
   });
@@ -38,7 +44,12 @@ class ManagementState extends Equatable {
     List<GymClass>? classes,
     List<Deduction>? deductions,
     List<CoachLeave>? leaves,
+    List<Branch>? branches,
     List<Map<String, dynamic>>? allCoaches,
+    String? selectedBranchId,
+    bool clearSelectedBranchId = false, // Added
+    bool? classIsFreeFilter,
+    bool clearClassIsFreeFilter = false,
     bool? isLoading,
     String? error,
   }) {
@@ -50,13 +61,29 @@ class ManagementState extends Equatable {
       allCoaches: allCoaches ?? this.allCoaches,
       deductions: deductions ?? this.deductions,
       leaves: leaves ?? this.leaves,
+      branches: branches ?? this.branches,
+      selectedBranchId: clearSelectedBranchId ? null : (selectedBranchId ?? this.selectedBranchId),
+      classIsFreeFilter: clearClassIsFreeFilter ? null : (classIsFreeFilter ?? this.classIsFreeFilter),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
   }
 
   @override
-  List<Object?> get props => [currentTab, shifts, inBodySlots, classes, deductions, leaves, allCoaches, isLoading, error];
+  List<Object?> get props => [
+        currentTab,
+        shifts,
+        inBodySlots,
+        classes,
+        deductions,
+        leaves,
+        branches,
+        allCoaches,
+        selectedBranchId,
+        classIsFreeFilter,
+        isLoading,
+        error,
+      ];
 }
 
 class ManagementCubit extends Cubit<ManagementState> {
@@ -68,6 +95,7 @@ class ManagementCubit extends Cubit<ManagementState> {
   StreamSubscription? _deductionsSub;
   StreamSubscription? _leavesSub;
   StreamSubscription? _coachesSub;
+  StreamSubscription? _branchesSub; // Added
 
   ManagementCubit(this._dataSource) : super(const ManagementState());
 
@@ -87,6 +115,9 @@ class ManagementCubit extends Cubit<ManagementState> {
     _leavesSub = _dataSource.watchLeaves().listen((data) {
       emit(state.copyWith(leaves: List<CoachLeave>.from(data)));
     });
+    _branchesSub = _dataSource.watchBranches().listen((data) {
+      emit(state.copyWith(branches: List<Branch>.from(data)));
+    });
 
     // Watch all coaches for management filtering
     _coachesSub = _firestore.collection('Gym_Coaches').snapshots().listen((snapshot) {
@@ -97,6 +128,22 @@ class ManagementCubit extends Cubit<ManagementState> {
 
   void setTab(ManagementTab tab) {
     emit(state.copyWith(currentTab: tab));
+  }
+
+  void setSelectedBranch(String? branchId) {
+    if (branchId == null) {
+      emit(state.copyWith(clearSelectedBranchId: true));
+    } else {
+      emit(state.copyWith(selectedBranchId: branchId));
+    }
+  }
+
+  void setClassIsFreeFilter(bool? isFree) {
+    if (isFree == null) {
+      emit(state.copyWith(clearClassIsFreeFilter: true));
+    } else {
+      emit(state.copyWith(classIsFreeFilter: isFree));
+    }
   }
 
   Future<void> updateShift(String coachId, String day, String start, String end, bool isOff) async {
@@ -114,15 +161,16 @@ class ManagementCubit extends Cubit<ManagementState> {
     }
   }
 
-  Future<void> addInBodySlot(String date, String time, String supervisorId, String supervisorName, String? memberName) async {
+  Future<void> updateInBodySlot(String coachId, String coachName, String day, String start, String end, bool isOff) async {
     try {
-      await _dataSource.addInBodySlot(InBodySlotModel(
+      await _dataSource.updateInBodySlot(InBodySlotModel(
         id: '',
-        date: date,
-        time: time,
-        supervisorId: supervisorId,
-        supervisorName: supervisorName,
-        memberName: memberName,
+        coachId: coachId,
+        coachName: coachName,
+        day: day,
+        startTime: start,
+        endTime: end,
+        isOff: isOff,
       ));
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
@@ -137,12 +185,50 @@ class ManagementCubit extends Cubit<ManagementState> {
     }
   }
 
-  Future<void> addDeduction(String coachId, double amount, String reason, String date) async {
+  Future<void> updateClassCapacity(String classId, int capacity) async {
+    try {
+      await _dataSource.updateClassCapacity(classId, capacity);
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  Future<void> addClass(GymClass gymClass) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await _dataSource.addClass(gymClass as GymClassModel);
+      emit(state.copyWith(isLoading: false));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> updateClass(GymClass gymClass) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await _dataSource.updateClass(gymClass as GymClassModel);
+      emit(state.copyWith(isLoading: false));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> deleteClass(String classId) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await _dataSource.deleteClass(classId);
+      emit(state.copyWith(isLoading: false));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> addDeduction(String coachId, double days, String reason, String date) async {
     try {
       await _dataSource.addDeduction(DeductionModel(
         id: '',
         coachId: coachId,
-        amount: amount,
+        days: days,
         reason: reason,
         date: date,
       ));
@@ -185,6 +271,7 @@ class ManagementCubit extends Cubit<ManagementState> {
     _deductionsSub?.cancel();
     _leavesSub?.cancel();
     _coachesSub?.cancel();
+    _branchesSub?.cancel();
     return super.close();
   }
 }

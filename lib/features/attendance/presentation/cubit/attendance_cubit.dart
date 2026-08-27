@@ -79,8 +79,22 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final String branchName = branchData['name'] ?? "Branch";
 
       // 3. Verify location
-      final isNearby = await LocationService.isWithinGeofence(lat, lng);
-      if (!isNearby) throw "You are too far from the branch to check in";
+      final position = await LocationService.getCurrentLocation();
+      if (position == null) {
+        throw "Could not determine your location. Please ensure GPS is enabled and permissions are granted.";
+      }
+
+      final double distance = LocationService.getDistance(
+        position.latitude,
+        position.longitude,
+        lat,
+        lng,
+      );
+
+      const double radius = 100.0; // 100 meters
+      if (distance > radius) {
+        throw "You are too far from the branch to check in. (Distance: ${distance.toStringAsFixed(0)}m, required: <${radius.toInt()}m)";
+      }
 
       // 4. Create record
       final entry = AttendanceEntryModel(

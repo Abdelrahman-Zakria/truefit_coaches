@@ -33,19 +33,56 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundBlack,
       body: SafeArea(
-        child: BlocBuilder<TimeTrackingCubit, TimeTrackingState>(
-          builder: (context, state) {
-            if (state is TimeTrackingLoading) {
-              return const Center(child: CircularProgressIndicator(color: AppTheme.primaryRed));
-            }
+        child: BlocConsumer<TimeTrackingCubit, TimeTrackingState>(
+          listener: (context, state) {
             if (state is TimeTrackingError) {
-              return Center(child: Text(state.message, style: const TextStyle(color: Colors.red)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppTheme.primaryRed,
+                ),
+              );
             }
-            if (state is TimeTrackingLoaded) {
-              return _buildContent(context, state, l10n);
-            }
-            return const SizedBox.shrink();
           },
+          builder: (context, state) {
+            return Stack(
+              children: [
+                if (state is TimeTrackingLoading)
+                  const Center(child: CircularProgressIndicator(color: AppTheme.primaryRed))
+                else if (state is TimeTrackingLoaded)
+                  _buildContent(context, state, l10n)
+                else
+                  const SizedBox.shrink(),
+                
+                if (state is TimeTrackingLoaded && state.isProcessing)
+                  _buildLoadingOverlay(l10n),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay(AppLocalizations l10n) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.7),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: AppTheme.primaryRed),
+            const SizedBox(height: 16),
+            Text(
+              "Verifying location...".toUpperCase(),
+              style: GoogleFonts.barlowCondensed(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 2,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -189,10 +226,14 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
             icon: LucideIcons.pause,
             activeColor: const Color(0xFFF59E0B),
             isActive: state.activeBreak != null,
-            isDisabled: state.activeTraining != null,
+            isDisabled: state.activeTraining != null || state.isProcessing,
             onTap: () {
               if (state.activeBreak != null) {
-                context.read<TimeTrackingCubit>().endTimeEntry(state.activeBreak!.id, state.activeBreak!.startTime);
+                context.read<TimeTrackingCubit>().endTimeEntry(
+                  state.activeBreak!.id, 
+                  state.activeBreak!.startTime,
+                  authState.coach['uid'],
+                );
               } else {
                 context.read<TimeTrackingCubit>().startTimeEntry(TimeEntryType.breakTime, authState.coach);
               }
@@ -206,10 +247,14 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
             icon: LucideIcons.play,
             activeColor: const Color(0xFF3B82F6),
             isActive: state.activeTraining != null,
-            isDisabled: state.activeBreak != null,
+            isDisabled: state.activeBreak != null || state.isProcessing,
             onTap: () {
               if (state.activeTraining != null) {
-                context.read<TimeTrackingCubit>().endTimeEntry(state.activeTraining!.id, state.activeTraining!.startTime);
+                context.read<TimeTrackingCubit>().endTimeEntry(
+                  state.activeTraining!.id, 
+                  state.activeTraining!.startTime,
+                  authState.coach['uid'],
+                );
               } else {
                 context.read<TimeTrackingCubit>().startTimeEntry(TimeEntryType.training, authState.coach);
               }

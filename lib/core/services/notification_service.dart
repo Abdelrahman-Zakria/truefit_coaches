@@ -19,12 +19,11 @@ class NotificationService {
       alert: true,
       badge: true,
       sound: true,
+      provisional: false,
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('User granted permission');
-    } else {
-      print('User declined or has not accepted permission');
     }
 
     // 2. Local Notifications Setup
@@ -36,32 +35,69 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(initSettings);
+    await _localNotifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Handle local notification tap
+        print("Local notification tapped: ${response.payload}");
+      },
+    );
 
-    // 3. Foreground Messages
+    // 3. Create Android Notification Channel
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel',
+      'High Importance Notifications',
+      description: 'This channel is used for important notifications.',
+      importance: Importance.max,
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+    // 4. Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
       
-      if (notification != null && android != null && !kIsWeb) {
+      if (notification != null && !kIsWeb) {
         _localNotifications.show(
           notification.hashCode,
           notification.title,
           notification.body,
-          const NotificationDetails(
+          NotificationDetails(
             android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'High Importance Notifications',
+              channel.id,
+              channel.name,
+              channelDescription: channel.description,
+              icon: android?.smallIcon ?? '@mipmap/ic_launcher',
               importance: Importance.max,
               priority: Priority.high,
             ),
-            iOS: DarwinNotificationDetails(),
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+            ),
           ),
+          payload: message.data.toString(),
         );
       }
     });
 
-    // 4. Background Handler
+    // 5. Handle notification tap when app is in background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print("Notification tapped while in background: ${message.data}");
+      // Navigate or perform action based on message.data
+    });
+
+    // 6. Handle notification tap when app is opened from terminated state
+    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      print("App opened from notification: ${initialMessage.data}");
+    }
+
+    // 7. Background Handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
