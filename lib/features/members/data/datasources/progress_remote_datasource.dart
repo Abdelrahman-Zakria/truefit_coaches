@@ -12,6 +12,7 @@ abstract class ProgressRemoteDataSource {
   Stream<List<AssessmentModel>> watchMemberAssessments(int memberId);
   Stream<List<PTSessionModel>> watchMemberSessions(int memberId);
   Future<void> updateMemberDietPlan(int memberId, DietPlanModel dietPlan);
+  Future<void> addMemberInBodyScan(int memberId, InBodyScanModel scan);
   Future<void> updateMemberWorkout(int memberId, WorkoutPlanModel workout);
   Future<void> addMemberAssessment(int memberId, AssessmentModel assessment);
   Future<void> updateMemberAssessment(String assessmentId, AssessmentModel assessment);
@@ -65,6 +66,20 @@ class ProgressRemoteDataSourceImpl implements ProgressRemoteDataSource {
         .collection('Gym_Diet_Plans')
         .doc(memberId.toString())
         .set(dietPlan.toMap(), SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> addMemberInBodyScan(int memberId, InBodyScanModel scan) async {
+    await _firestore.collection('Gym_Progress_InBody').add({
+      'member_id': memberId,
+      'date': scan.date,
+      'weight': scan.weight,
+      'body_fat_pct': scan.bodyFatPct,
+      'muscle_mass': scan.muscleMass,
+      'bmi': scan.bmi,
+      'hydration': scan.hydration,
+      'created_at': FieldValue.serverTimestamp(),
+    });
   }
 
   @override

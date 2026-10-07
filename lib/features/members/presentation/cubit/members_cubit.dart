@@ -9,8 +9,10 @@ import '../../domain/entities/assessment_entity.dart';
 import '../../../schedule/domain/entities/schedule_entities.dart';
 import '../../data/datasources/progress_remote_datasource.dart';
 import '../../data/models/diet_plan_model.dart';
+import '../../data/models/inbody_scan_model.dart';
 import '../../data/models/workout_model.dart';
 import '../../data/models/assessment_model.dart';
+import 'package:truefit_coaches/core/services/fcm_v1_service.dart';
 
 abstract class MembersState {}
 
@@ -198,8 +200,28 @@ class MembersCubit extends Cubit<MembersState> {
   Future<void> updateDietPlan(int memberId, DietPlan dietPlan) async {
     try {
       await _progressDataSource.updateMemberDietPlan(memberId, dietPlan as DietPlanModel);
+      unawaited(FcmV1Service.sendNotificationToMember(
+        memberId: memberId,
+        title: 'New Diet Plan Assigned',
+        body: 'Your coach assigned/updated your diet plan (${dietPlan.totalCalories} kcal goal).',
+        data: {'type': 'diet_plan', 'member_id': memberId.toString()},
+      ));
     } catch (e) {
       _handleTabError("Update failed: ${e.toString()}");
+    }
+  }
+
+  Future<void> addInBodyScan(int memberId, InBodyScanModel scan) async {
+    try {
+      await _progressDataSource.addMemberInBodyScan(memberId, scan);
+      unawaited(FcmV1Service.sendNotificationToMember(
+        memberId: memberId,
+        title: 'New InBody Scan Recorded',
+        body: 'Your coach recorded a new InBody scan (${scan.weight} kg, ${scan.bodyFatPct}% body fat).',
+        data: {'type': 'inbody', 'member_id': memberId.toString()},
+      ));
+    } catch (e) {
+      _handleTabError("Failed to add InBody scan: ${e.toString()}");
     }
   }
 

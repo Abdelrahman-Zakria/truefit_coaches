@@ -13,6 +13,7 @@ import '../../domain/entities/inbody_scan_entity.dart';
 import '../../domain/entities/diet_plan_entity.dart';
 import '../../domain/entities/assessment_entity.dart';
 import '../../data/models/diet_plan_model.dart';
+import '../../data/models/inbody_scan_model.dart';
 
 class MemberProfileScreen extends StatefulWidget {
   final Map<String, dynamic> member;
@@ -394,6 +395,8 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> with SingleTi
                       letterSpacing: 1,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  _buildActionBtn(LucideIcons.plus, l10n.translate('new_scan'), onTap: () => _showAddInBodyDialog(l10n)),
                 ],
               ),
             );
@@ -407,7 +410,7 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> with SingleTi
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildActionBtn(LucideIcons.plus, l10n.translate('new_scan')),
+              _buildActionBtn(LucideIcons.plus, l10n.translate('new_scan'), onTap: () => _showAddInBodyDialog(l10n)),
               const SizedBox(height: 16),
               Container(
                 height: 180,
@@ -556,6 +559,151 @@ class _MemberProfileScreenState extends State<MemberProfileScreen> with SingleTi
         }
         return const Center(child: CircularProgressIndicator(color: AppTheme.primaryRed));
       },
+    );
+  }
+
+  void _showAddInBodyDialog(AppLocalizations l10n) {
+    final weightCtrl = TextEditingController();
+    final bodyFatCtrl = TextEditingController();
+    final muscleCtrl = TextEditingController();
+    final bmiCtrl = TextEditingController();
+    final hydrationCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF111111),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "NEW INBODY SCAN",
+              style: GoogleFonts.barlowCondensed(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: weightCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Weight (kg)",
+                labelStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Color(0xFF1F1F1F),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: bodyFatCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Body Fat %",
+                labelStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Color(0xFF1F1F1F),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: muscleCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Muscle Mass (kg)",
+                labelStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Color(0xFF1F1F1F),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: bmiCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "BMI",
+                labelStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Color(0xFF1F1F1F),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: hydrationCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Hydration %",
+                labelStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Color(0xFF1F1F1F),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryRed,
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                final weight = double.tryParse(weightCtrl.text) ?? 0.0;
+                final bodyFat = double.tryParse(bodyFatCtrl.text) ?? 0.0;
+                final muscle = double.tryParse(muscleCtrl.text) ?? 0.0;
+                final bmi = double.tryParse(bmiCtrl.text) ?? 0.0;
+                final hydration = double.tryParse(hydrationCtrl.text) ?? 0.0;
+
+                final persIdRaw = widget.member['pers_id'] ?? widget.member['pers_data']?['pers_ID'];
+                final int? persId = persIdRaw is int ? persIdRaw : int.tryParse(persIdRaw.toString());
+
+                if (persId != null && weight > 0) {
+                  final nowStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+                  final scan = InBodyScanModel(
+                    id: '',
+                    memberId: persId,
+                    date: nowStr,
+                    weight: weight,
+                    bodyFatPct: bodyFat,
+                    muscleMass: muscle,
+                    bmi: bmi,
+                    hydration: hydration,
+                  );
+                  context.read<MembersCubit>().addInBodyScan(persId, scan);
+                  Navigator.pop(ctx);
+                }
+              },
+              child: Text(
+                l10n.translate('save').toUpperCase(),
+                style: GoogleFonts.barlowCondensed(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

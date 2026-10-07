@@ -1,7 +1,7 @@
 name: truefit_coaches
 description: "True Fit Coaches App - Specialized side of the fitness ecosystem."
 publish_to: 'none'
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: ^3.11.0
@@ -31,6 +31,8 @@ dependencies:
   cloud_functions: ^6.3.6
   firebase_messaging: ^16.5.0
   flutter_local_notifications: ^18.0.1
+  http: ^1.2.2
+  googleapis_auth: ^1.4.1
 
 dev_dependencies:
   flutter_test:

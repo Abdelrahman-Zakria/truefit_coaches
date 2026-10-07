@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:truefit_coaches/core/services/fcm_v1_service.dart';
 
 abstract class ChatRoomState {}
 
@@ -67,6 +68,21 @@ class ChatRoomCubit extends Cubit<ChatRoomState> {
         'last_message': text,
         'updated_at': FieldValue.serverTimestamp(),
       });
+
+      // Send push notification to member
+      final convDoc = await _firestore.collection('Gym_Conversations').doc(chatId).get();
+      if (convDoc.exists) {
+        final convData = convDoc.data();
+        final dynamic memberId = convData?['member_id'] ?? convData?['pers_ID'];
+        if (memberId != null) {
+          unawaited(FcmV1Service.sendNotificationToMember(
+            memberId: memberId,
+            title: senderName,
+            body: text,
+            data: {'type': 'chat', 'chat_id': chatId},
+          ));
+        }
+      }
     } catch (e) {
       debugPrint("Failed to send message: $e");
     }

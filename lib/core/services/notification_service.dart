@@ -102,19 +102,35 @@ class NotificationService {
   }
 
   static Future<void> updateToken(String userId) async {
-    String? token = await _messaging.getToken();
-    if (token != null) {
-      await FirebaseFirestore.instance
-          .collection('Gym_Coaches')
-          .doc(userId)
-          .set({'fcmToken': token}, SetOptions(merge: true));
+    try {
+      await _messaging.subscribeToTopic('coaches');
+    } catch (e) {
+      print("Error subscribing to coaches topic: $e");
+    }
+
+    try {
+      final token = await _messaging.getToken();
+      if (token != null) {
+        await FirebaseFirestore.instance
+            .collection('Gym_Coaches')
+            .doc(userId)
+            .set({
+              'fcm_token': token,
+              'fcmToken': token,
+            }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      print("Error saving FCM token: $e");
     }
 
     _messaging.onTokenRefresh.listen((newToken) {
       FirebaseFirestore.instance
           .collection('Gym_Coaches')
           .doc(userId)
-          .set({'fcmToken': newToken}, SetOptions(merge: true));
+          .set({
+            'fcm_token': newToken,
+            'fcmToken': newToken,
+          }, SetOptions(merge: true));
     });
   }
 }
