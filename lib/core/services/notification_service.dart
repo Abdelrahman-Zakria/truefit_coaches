@@ -124,13 +124,33 @@ class NotificationService {
       }
 
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-        final String? apnsToken = await _messaging.getAPNSToken();
-        if (apnsToken == null) {
+        String? apnsToken;
+        try {
+          apnsToken = await _messaging.getAPNSToken();
+        } catch (_) {}
+        int retries = 0;
+        while (apnsToken == null && retries < 5) {
+          print("⏳ [iOS FCM] APNS token not set yet. Waiting 1s... (Attempt ${retries + 1}/5)");
           await Future.delayed(const Duration(seconds: 1));
+          try {
+            apnsToken = await _messaging.getAPNSToken();
+          } catch (_) {}
+          retries++;
         }
       }
 
-      final String? token = await _messaging.getToken();
+      String? token;
+      try {
+        token = await _messaging.getToken();
+      } catch (e) {
+        if (e.toString().contains('apns-token-not-set')) {
+          print("⚠️ [iOS FCM] APNS token still registering. Retrying getToken() in 3s...");
+          await Future.delayed(const Duration(seconds: 3));
+          token = await _messaging.getToken();
+        } else {
+          rethrow;
+        }
+      }
 
       if (token == null || token.trim().isEmpty) {
         throw Exception("FirebaseMessaging.instance.getToken() returned null or empty token.");
