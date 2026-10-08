@@ -111,6 +111,25 @@ GjGXlog1xWe6751exEjp3/u0PkaxjuBrZtgEh/sm417UbOygItJS7PJAzzhclsEC
           'title': title,
           'body': body,
         },
+        'android': {
+          'priority': 'high',
+          'notification': {
+            'sound': 'default',
+            'channel_id': 'high_importance_channel',
+          },
+        },
+        'apns': {
+          'payload': {
+            'aps': {
+              'alert': {
+                'title': title,
+                'body': body,
+              },
+              'sound': 'default',
+              'badge': 1,
+            },
+          },
+        },
       };
       if (data != null) {
         messageData['data'] = data;

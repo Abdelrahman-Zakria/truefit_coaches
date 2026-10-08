@@ -29,6 +29,15 @@ class NotificationService {
       print('User granted permission');
     }
 
+    // iOS Foreground Notification Presentation
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+
     // 2. Local Notifications Setup
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
@@ -112,6 +121,13 @@ class NotificationService {
         await _messaging.subscribeToTopic('coaches');
       } catch (e) {
         print("Error subscribing to coaches topic: $e");
+      }
+
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        final String? apnsToken = await _messaging.getAPNSToken();
+        if (apnsToken == null) {
+          await Future.delayed(const Duration(seconds: 1));
+        }
       }
 
       final String? token = await _messaging.getToken();

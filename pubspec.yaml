@@ -1,7 +1,7 @@
 name: truefit_coaches
 description: "True Fit Coaches App - Specialized side of the fitness ecosystem."
 publish_to: 'none'
-version: 1.0.0+7
+version: 1.0.0+8
 
 environment:
   sdk: ^3.11.0
