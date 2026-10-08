@@ -70,18 +70,25 @@ class ChatRoomCubit extends Cubit<ChatRoomState> {
       });
 
       // Send push notification to member
+      dynamic memberId;
       final convDoc = await _firestore.collection('Gym_Conversations').doc(chatId).get();
       if (convDoc.exists) {
         final convData = convDoc.data();
-        final dynamic memberId = convData?['member_id'] ?? convData?['pers_ID'];
-        if (memberId != null) {
-          unawaited(FcmV1Service.sendNotificationToMember(
-            memberId: memberId,
-            title: senderName,
-            body: text,
-            data: {'type': 'chat', 'chat_id': chatId},
-          ));
-        }
+        memberId = convData?['member_id'] ?? convData?['pers_ID'] ?? convData?['pers_id'];
+      }
+      
+      // Fallback: If chatId is in memberID_coachUID format
+      if (memberId == null && chatId.contains('_')) {
+        memberId = chatId.split('_')[0];
+      }
+
+      if (memberId != null) {
+        unawaited(FcmV1Service.sendNotificationToMember(
+          memberId: memberId,
+          title: senderName,
+          body: text,
+          data: {'type': 'chat', 'chat_id': chatId},
+        ));
       }
     } catch (e) {
       debugPrint("Failed to send message: $e");

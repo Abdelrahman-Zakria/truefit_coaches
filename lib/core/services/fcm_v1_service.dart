@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -38,7 +37,11 @@ class FcmV1Service {
   static Map<String, dynamic> get serviceAccountCredentials {
     if (_cachedCredentials != null) return _cachedCredentials!;
     final String jsonStr = utf8.decode(base64Decode(_encodedCredentials));
-    _cachedCredentials = jsonDecode(jsonStr) as Map<String, dynamic>;
+    final Map<String, dynamic> map = jsonDecode(jsonStr) as Map<String, dynamic>;
+    if (map['private_key'] != null) {
+      map['private_key'] = (map['private_key'] as String).replaceAll(r'\n', '\n');
+    }
+    _cachedCredentials = map;
     return _cachedCredentials!;
   }
 
@@ -56,7 +59,7 @@ class FcmV1Service {
 
       return accessToken;
     } catch (e) {
-      debugPrint("Error generating OAuth2 access token for FCM v1: $e");
+      print("❌ [FCM v1] Error generating OAuth2 access token: $e");
       return null;
     }
   }
@@ -69,10 +72,14 @@ class FcmV1Service {
   }) async {
     try {
       if (targetToken.isEmpty) return;
+      print("🔑 [FCM v1] Obtaining OAuth2 Access Token...");
       final String? accessToken = await _getAccessToken();
       final String projectId = serviceAccountCredentials['project_id'] ?? 'true-fit-52715';
 
-      if (accessToken == null) return;
+      if (accessToken == null) {
+        print("❌ [FCM v1] Failed to obtain access token.");
+        return;
+      }
 
       final Uri url = Uri.parse(
         'https://fcm.googleapis.com/v1/projects/$projectId/messages:send',
@@ -102,10 +109,10 @@ class FcmV1Service {
         body: jsonEncode(messagePayload),
       );
 
-      debugPrint('FCM HTTP v1 Response status: ${response.statusCode}');
-      debugPrint('FCM HTTP v1 Response body: ${response.body}');
+      print('✅ [FCM v1] Response status: ${response.statusCode}');
+      print('📩 [FCM v1] Response body: ${response.body}');
     } catch (e) {
-      debugPrint('Error sending FCM HTTP v1 notification: $e');
+      print('❌ [FCM v1] Exception sending notification: $e');
     }
   }
 
@@ -118,22 +125,43 @@ class FcmV1Service {
   }) async {
     if (memberId == null) return;
     try {
+      print("🔔 [FCM v1] Preparing notification for member: $memberId ($title)");
       final String memberIdStr = memberId.toString();
-      final doc = await FirebaseFirestore.instance
+      final int? memberIdInt = memberId is int ? memberId : int.tryParse(memberIdStr);
+
+      DocumentSnapshot<Map<String, dynamic>>? memberDoc;
+
+      // 1. Try lookup by Doc ID
+      final docById = await FirebaseFirestore.instance
           .collection('Gym_pers')
           .doc(memberIdStr)
           .get();
 
-      if (!doc.exists) {
-        debugPrint("Member doc $memberIdStr not found in Gym_pers");
+      if (docById.exists) {
+        memberDoc = docById;
+      } else if (memberIdInt != null) {
+        // 2. Fallback query by pers_ID field
+        final query = await FirebaseFirestore.instance
+            .collection('Gym_pers')
+            .where('pers_ID', isEqualTo: memberIdInt)
+            .limit(1)
+            .get();
+        if (query.docs.isNotEmpty) {
+          memberDoc = query.docs.first;
+        }
+      }
+
+      if (memberDoc == null || !memberDoc.exists) {
+        print("❌ [FCM v1] Member doc for ID $memberIdStr not found in Gym_pers");
         return;
       }
 
-      final memberData = doc.data()!;
+      final memberData = memberDoc.data()!;
       // Check both 'fcmToken' and 'fcm_token' fields
       final String? token = (memberData['fcmToken'] ?? memberData['fcm_token']) as String?;
 
       if (token != null && token.trim().isNotEmpty) {
+        print("📲 [FCM v1] Target Token found: ${token.trim().substring(0, 15)}...");
         await sendNotification(
           targetToken: token.trim(),
           title: title,
@@ -141,10 +169,10 @@ class FcmV1Service {
           data: data,
         );
       } else {
-        debugPrint("No FCM token found for member $memberIdStr");
+        print("⚠️ [FCM v1] No FCM token found in Gym_pers for member $memberIdStr");
       }
     } catch (e) {
-      debugPrint("Error sending notification to member $memberId: $e");
+      print("❌ [FCM v1] Error sending notification to member $memberId: $e");
     }
   }
 }
