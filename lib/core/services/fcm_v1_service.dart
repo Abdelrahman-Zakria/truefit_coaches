@@ -9,39 +9,62 @@ class FcmV1Service {
     'https://www.googleapis.com/auth/firebase.messaging',
   ];
 
-  static Map<String, dynamic>? _cachedCredentials;
+  static const String _pkBase64 =
+      "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcw"
+      "QkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRRHVlWnduQ0FaN1RVc2gKMC9oVmh0djBZ"
+      "VzNrTlg3Q1ZGekNZenVGckVZRC9HUmhlbk9TbDk1bDhjSFdkNXRBeis4RUdHQkg2WG9v"
+      "Qlh1LwpLMi9QQlNEZDJXb0ZmM1RBU3VxQ2xZK1ZhWHVyYjkyZC9idStFUkFuV2gxcHdI"
+      "U2dCOCtEWnZBSDJLcjVmMUdJCm1SRW0ybW15Sm5UTi82N0FMZEVSeDNnTTFaendob01N"
+      "RlB0Q2UwcUVBR2QvMmtiUlJWRGdwSFJEWmVBYWswNHIKT0lyM01sckdnT2l2UlFmd3BJ"
+      "dC80Rm85NXoxaFY2djlubWFucGd4N09VUDJSaFNRMXlIZk9XYnBjQXpMdEZFUApsN2pF"
+      "WGhBeFhjTUJrZGlpd3JhcEVYYU5rTHpKMW94elFwdWc3Vy9Iek85ZVhXbHAwNzVYeXVy"
+      "K0pUQkxlOEZYdVYKWmczcVEzclZBZ01CQUFFQ2dnRUFBWUV2N0lrZTdWazcvNThrUW5u"
+      "aTJtUmcrcDhoeVIwYUpyblVqcy9hOHp4OAo3NmFEb3ltbEpCU0Y2aElBSDBVUWw0Q0Yz"
+      "djVJb0ljRVZGejBUQ1NXby8reXJRQDBVZUJISVlMTEVLREZRSHdvCnRFMzlDTUozelIv"
+      "QzdyOWhuUDdmbnM4ZjlaUzI0M01ic3had0pzUWJCWjQ3ZjI4OURZWmNldFc4MnF2Z1hS"
+      "NGhKQ0ZRV3ZQOGxmTUFvWnkvOWVySC9hZnV3RmVzUnFFWlFtditpU2FLVXdONUpSU3Ri"
+      "RHBPUHdTcWV2ZEdRZVArdwpIaXN3VmdLK1NVNkhEa3lZOUFyVVREZWEwQSt6UGMxWStQ"
+      "QTBJS1NTRE0reHlMdis3eW5xbWVydDlmbGh4NEN6ClI2d2xQWHNqWWhRait6ZjExS3Qx"
+      "bVV1RDljREh5aU9xdnpWNnEwNjlzUUtCZ1FEK0dHMEJSUldrVXhXM1BuSFptbk1DbEg3"
+      "YXZvOFpGV0ZlYlphVzM2TE1jMnZYUmYrUFpQVWhHNHZzQlRQNy9icjE5Sks3cmk3eHNG"
+      "UnROditTK2psZ0Q4dnR3cFN0YkliVjQ4QjlYWFF2Y1hQMVBZenBsczhZTkpkVC9Xdllt"
+      "VVU5RS9wUkg3RytwamhRRi9vVkNsWk9FbytDeFljQ3RHRFpNZ2xsZjExMGVRS0JnUUQx"
+      "TlYzTTZlT2xvcjRFakxIL01BbTV1VnNjRkMwblkxRDMKU1JlM1FOQUREcVdMRjhmMlJC"
+      "cnZXNzF0Qlc5SWVFQ3pwY3lFS0NpYW0xYUhtK1E0d2NkV0RxTUIzd2hoT2trcgp2N0tx"
+      "QWVCNDBDc1BiMWFOSVJmVjJzQkNqOTVLVEpSZEFheWFXVU5zbHpXaHJ1NDFWV0xGZ1Ns"
+      "VjFYVnlQQVR0Y01sQUtyWUlLUFFLQmdRQ3R1SnBzQTFRN2llSFFMOWsvRWFqVnR3bmcx"
+      "ekZIcmx4M2lCNFlma2xaUVh4UkJMMnkKcjY0L2dMb2NZUEVKOXR5YXZDSWFwUXFLaUJB"
+      "UUUrTnhTRVJreHh6UHpYZDlpTnlUS1lCV3pKQjlxNzA0TEkveU0KRFRmSjJ3QndrWmJM"
+      "MXY2eUJKdVlPWFpMNGkzTzdUd0pyR0hXTGl0SEEwOFdld2hNNVJZYlpVaXZlUUtCZ1FE"
+      "Wgpnb3RBTjhDOXJzekxrRnBjT1NxSFdzcGM3L0RWM3oxMm5abXg3b1lXRUNuOFpnMzBm"
+      "NWs4OWEza1JVdmZodnd0CjMwYTVmRDM0Vnc2OG9DWWp5cENkMzhIczZRQ3Y3bG4xdXNn"
+      "clVocmlVQlhDVFVzRFNYV3hONmdQNHpxVndiUmgKaEJpdG1ielZVdzNyY3FUK0xmeTVv"
+      "M2FHODFnbGFqeFRuald1SXhjVktRS0JnRWdsVUg4ckp0bFBRUVd2RlMwSHl4dkZyNjNH"
+      "WW0zYUU1cjNvQTlhSnJvdXFTYm5hU2VPa0pWWDg4cW1PTXM1NlRpTlFrTXhxWlgwZ1Rm"
+      "aCs2Q09DQkdqR1hsT2cxeFdlNjc1MWV4RWpwMy91MFBrYXhqdUJyWnRnRWgvc200MTdV"
+      "Yk95Z2l0SlM3UEpBenpoY2xzRUM3U1U5VFVBcXgyeHFrZGtwNkc3KzlMMXVDCi0tLS0t"
+      "RU5EIFBSSVZBVEUgS0VZLS0tLS0K";
 
-  static const String _encodedCredentials =
-      "eyJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsICJwcm9qZWN0X2lkIjogInRydWUtZml0LTUyNzE1IiwgInByaXZhdGVfa2V5X2lkIjogImQ2Yjk5NWE5MmE5NDhjZGVlMzAzZDRkNmJkZGUzNzc1Zj"
-      "nkxZGM5YmEiLCAicHJpdmF0ZV9rZXkiOiAiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdmdJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLZ3dnZ1NrQWdFQUFvSUJBUUR1ZVp3bkNB"
-      "WjdUVXNoXG4wL2hWaHR2MFlXM2tOWDdDVkZ6Q1l6dUZyRVlEL0dSaGVuT1NsOTVsOGNIV2Q1dEF6KzhFR0dCSDZYb29CWHUvXG5LMi9QQlNEZDJXb0ZmM1RBU3VxQ2xZK1ZhWHVyYjkyZC9idStFUk"
-      "FuV2gxcHdIU2dCOCtEWnZBSDJLcjVmMUdJXG5tUkVtMm1teUpuVE4vNjdBTGRFUngzZ00xWnp3aG9NTUZQdENlMHFFQUdkLzJrYlJSVkRncEhSRFplQWFrMDRyXG5PSXIzTWxyR2dPaXZSUWZ3cEl0"
-      "LzRGbzk1ejFoVjZ2OW5tYW5wZ3g3T1VQMlJoU1ExeUhmT1dicGNBekx0RkVQXG5sN2pFWGhBeFhjTUJrZGlpd3BFWGFOa0x6SjFveHpRcHVnN1cvSHpPOWVYV2xwMDc1WHl1citKVEJMZThGWHVWXG"
-      "5aZzNxUTNyVkFnTUJBQUVDZ2dFQUFZRXY3SWtlN1ZrNy81OGtRbm5pMm1SZytwOGh5UjBhSnJuVWpzL2E4eng4XG43NmFEb3ltbEpCU0Y2aElBSDBVUWw0Q0YzdjVJb0ljRVZGejBUQ1NXby8reXJR"
-      "MDBVZUJISVlMTEVLREZRSHdvXG50RTM5Q01KM3pSL0M3cjloblA3Zm5zOGY5WlMyNDNNYnN4WndKc1FiQlo0N2YyODlEWVpjZXRXODJxdmdYUjRoXG5DRlFXdlA4bGZNQW9aeS85ZXJIL2FmdXdGZX"
-      "NScUVaUW12K2lTYUtVd041SlJTdGJEcE9Qd1NxZXZkR1FlUCt3XG5IaXN3VmdLK1NVNkhEa3lZOUFyVVREZWEwQSt6UGMxWStQQTBJS1NTRE0reHlMdis3eW5xbWVydDlmbGh4NEN6XG5SNndsUFhz"
-      "alloUWoremYxMUt0MW1VdUQ5Y0RIeWlPcXZ6VjZxMDY5c1FLQmdRRDQrR0cwQlJXa1V4VzNQbkhaXG5uN01DbEg3YXYvOFpGV0ZlYlphVzM2TE1jMnZYUmYrUFpQVWhHNHZzQlRQNy9icjE5Sks3cm"
-      "k3eHNGUnROditTXG4ramxnRDh2dHdwU3RiSWJWNDhCOVhYUXZjWFAxUFl6cGxzOFlOSmRUL1d2WW1VVTlFL3BSSDdHK3BqaFFGL29WXG5DbFpPRW8rQ3hZY0N0R0RaTWdsbGYxMTBlUUtCZ1FEMU5W"
-      "M002ZU9sb3I0RWpMSC9NQW01dVZzY0ZDMG5ZMUQzXG5TUmUzUU5BRERxV0xGOGYyUkJydlc3MXRCVzlJZUVDenBjeUVLQ2lhbTFhSG0rUTR3Y2RXRHFNQjN3aGhPa2tyXG52N0txQWVCNDBDc1BiMW"
-      "FOSVJmVjJzQkNqOTVLVEpSZEFheWFXVU5zeldocnU0MVZXTEZnU2xWMVhWeVBBVHRjXG5NbEFLcllJS1BRS0JnUUN0dUpwc0ExUTdpZUhRTDlrL0VhalZ0d25nMXpGSHJseDNpQjRZZmtsWlFYeFJC"
-      "TDJ5XG5yNjQvZ0xvY1lQRUo5dHlhdkNJYXBRcUtpQkFRK054U0VSa3h4elB6WGQ5aU55VEtZQld6SkI5cTcwNExJL3lNXG5EVGZKMndCd2taYkwxdjZ5Qkp1WU9YWkw0aTNPN1R3SnJHSFdMaXRIQT"
-      "A4V2V3aE01UlliWlVpdmVRS0JnUURaXG5nb3RBTjhDOXJzekxrRnBjT1NxSFdzcGM3L0RWM1oxMm5abXg3b1lXRUNuOFpnMzBmNWs4OWEza1JVdmZodnd0XG4zMGE1ZkQzNFZ3NjhvQ1lqeXBDZDM4"
-      "SHM2UUN2N2xuMXVzZ3JVaHJpVUJYQ1RVc0RTWFd4TjZnUDR6cVZ3YlJoXG5oQml0bWJ6VlV3M3JjcVQrTGZ5NW8zYUc4MWdsYWp4VG5qV3VJeGNWS1FLQmdFZ2xVSDhySnRsUFFSd3VlMEh5XG54dk"
-      "ZyNjNHWW0zYUU1cjNvQTlhSnJvdXFTYm5hU2VPa0pWWDg4cW1PTXM1NlRpTlFrTXhxWlgwZ1RmaCs2Q09DXG5HakdYbG9nMXhXZTY3NTFleEVqcDMvdTBQa2F4anVCclp0Z0VoL3NtNDE3VWJPeWdJ"
-      "dEpTN1BKQXp6aGNsc0VDXG43U1U5VFVBcXgyeHFrZGtwNkc3KzlMMXVcbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIsICJjbGllbnRfZW1haWwiOiAiZmlyZWJhc2UtYWRtaW5zZGstZmJzdm"
-      "NAdHJ1ZS1maXQtNTI3MTUuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCAiY2xpZW50X2lkIjogIjExMjk3ODQyOTM1MjQ5OTQxMjI1NiIsICJhdXRoX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdv"
-      "b2dsZS5jb20vby9vYXV0aDIvYXV0aCIsICJ0b2tlbl91cmkiOiAiaHR0cHM6Ly9vYXV0aDIuZ29vZ2xlYXBpcy5jb20vdG9rZW4iLCAiYXV0aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dH"
-      "BzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL29hdXRoMi92MS9jZXJ0cyIsICJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94"
-      "NTA5L2ZpcmViYXNlLWFkbWluc2RrLWZic3ZjJTQwdHJ1ZS1maXQtNTI3MTUuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20ifQ==";
+  static Map<String, dynamic>? _cachedCredentials;
 
   static Map<String, dynamic> get serviceAccountCredentials {
     if (_cachedCredentials != null) return _cachedCredentials!;
-    final String jsonStr = utf8.decode(base64Decode(_encodedCredentials));
-    final Map<String, dynamic> map = jsonDecode(jsonStr) as Map<String, dynamic>;
-    if (map['private_key'] != null) {
-      map['private_key'] = (map['private_key'] as String).replaceAll(r'\n', '\n');
-    }
-    _cachedCredentials = map;
+    final String cleanB64 = _pkBase64.replaceAll(RegExp(r'\s+'), '');
+    final String normalized = base64.normalize(cleanB64);
+    final String privateKey = utf8.decode(base64Decode(normalized));
+
+    _cachedCredentials = {
+      "type": "service_account",
+      "project_id": "true-fit-52715",
+      "private_key_id": "d6b995a92a948cdee303d4d6bdde3775f91dc9ba",
+      "private_key": privateKey,
+      "client_email": "firebase-adminsdk-fbsvc@true-fit-52715.iam.gserviceaccount.com",
+      "client_id": "112978429352499412256",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40true-fit-52715.iam.gserviceaccount.com",
+    };
     return _cachedCredentials!;
   }
 
