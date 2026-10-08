@@ -68,63 +68,66 @@ class ChatListScreen extends StatelessWidget {
   Widget _buildChatTile(BuildContext context, Map<String, dynamic> chat, AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
+      child: Material(
         color: AppTheme.surfaceDark,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: ListTile(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatRoomScreen(conversation: chat),
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: ListTile(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatRoomScreen(conversation: chat),
+              ),
+            );
+          },
+          contentPadding: const EdgeInsets.all(12),
+          leading: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryRed.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
             ),
-          );
-        },
-        contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryRed.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Text(
-              (chat['display_name'] ?? 'M').substring(0, 1).toUpperCase(),
-              style: GoogleFonts.barlowCondensed(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
+            child: Center(
+              child: Text(
+                (chat['display_name'] ?? 'M').substring(0, 1).toUpperCase(),
+                style: GoogleFonts.barlowCondensed(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
-        ),
-        title: Text(
-          chat['display_name'] ?? l10n.translate('member'),
-          style: GoogleFonts.barlowCondensed(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
+          title: Text(
+            chat['display_name'] ?? l10n.translate('member'),
+            style: GoogleFonts.barlowCondensed(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
           ),
+          subtitle: Text(
+            chat['last_message'] ?? '',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 13),
+          ),
+          trailing: chat['unread_count'] != null && chat['unread_count'] > 0
+              ? Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(color: AppTheme.primaryRed, shape: BoxShape.circle),
+                  child: Text(
+                    chat['unread_count'].toString(),
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                )
+              : const Icon(LucideIcons.chevronRight, color: Colors.white12, size: 18),
         ),
-        subtitle: Text(
-          chat['last_message'] ?? '',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 13),
-        ),
-        trailing: chat['unread_count'] != null && chat['unread_count'] > 0
-            ? Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(color: AppTheme.primaryRed, shape: BoxShape.circle),
-                child: Text(
-                  chat['unread_count'].toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              )
-            : const Icon(LucideIcons.chevronRight, color: Colors.white12, size: 18),
       ),
     );
   }

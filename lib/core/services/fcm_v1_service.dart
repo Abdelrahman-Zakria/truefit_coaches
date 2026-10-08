@@ -9,55 +9,51 @@ class FcmV1Service {
     'https://www.googleapis.com/auth/firebase.messaging',
   ];
 
-  static const String _pkBase64 =
-      "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcw"
-      "QkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRRHVlWnduQ0FaN1RVc2gKMC9oVmh0djBZ"
-      "VzNrTlg3Q1ZGekNZenVGckVZRC9HUmhlbk9TbDk1bDhjSFdkNXRBeis4RUdHQkg2WG9v"
-      "Qlh1LwpLMi9QQlNEZDJXb0ZmM1RBU3VxQ2xZK1ZhWHVyYjkyZC9idStFUkFuV2gxcHdI"
-      "U2dCOCtEWnZBSDJLcjVmMUdJCm1SRW0ybW15Sm5UTi82N0FMZEVSeDNnTTFaendob01N"
-      "RlB0Q2UwcUVBR2QvMmtiUlJWRGdwSFJEWmVBYWswNHIKT0lyM01sckdnT2l2UlFmd3BJ"
-      "dC80Rm85NXoxaFY2djlubWFucGd4N09VUDJSaFNRMXlIZk9XYnBjQXpMdEZFUApsN2pF"
-      "WGhBeFhjTUJrZGlpd3JhcEVYYU5rTHpKMW94elFwdWc3Vy9Iek85ZVhXbHAwNzVYeXVy"
-      "K0pUQkxlOEZYdVYKWmczcVEzclZBZ01CQUFFQ2dnRUFBWUV2N0lrZTdWazcvNThrUW5u"
-      "aTJtUmcrcDhoeVIwYUpyblVqcy9hOHp4OAo3NmFEb3ltbEpCU0Y2aElBSDBVUWw0Q0Yz"
-      "djVJb0ljRVZGejBUQ1NXby8reXJRQDBVZUJISVlMTEVLREZRSHdvCnRFMzlDTUozelIv"
-      "QzdyOWhuUDdmbnM4ZjlaUzI0M01ic3had0pzUWJCWjQ3ZjI4OURZWmNldFc4MnF2Z1hS"
-      "NGhKQ0ZRV3ZQOGxmTUFvWnkvOWVySC9hZnV3RmVzUnFFWlFtditpU2FLVXdONUpSU3Ri"
-      "RHBPUHdTcWV2ZEdRZVArdwpIaXN3VmdLK1NVNkhEa3lZOUFyVVREZWEwQSt6UGMxWStQ"
-      "QTBJS1NTRE0reHlMdis3eW5xbWVydDlmbGh4NEN6ClI2d2xQWHNqWWhRait6ZjExS3Qx"
-      "bVV1RDljREh5aU9xdnpWNnEwNjlzUUtCZ1FEK0dHMEJSUldrVXhXM1BuSFptbk1DbEg3"
-      "YXZvOFpGV0ZlYlphVzM2TE1jMnZYUmYrUFpQVWhHNHZzQlRQNy9icjE5Sks3cmk3eHNG"
-      "UnROditTK2psZ0Q4dnR3cFN0YkliVjQ4QjlYWFF2Y1hQMVBZenBsczhZTkpkVC9Xdllt"
-      "VVU5RS9wUkg3RytwamhRRi9vVkNsWk9FbytDeFljQ3RHRFpNZ2xsZjExMGVRS0JnUUQx"
-      "TlYzTTZlT2xvcjRFakxIL01BbTV1VnNjRkMwblkxRDMKU1JlM1FOQUREcVdMRjhmMlJC"
-      "cnZXNzF0Qlc5SWVFQ3pwY3lFS0NpYW0xYUhtK1E0d2NkV0RxTUIzd2hoT2trcgp2N0tx"
-      "QWVCNDBDc1BiMWFOSVJmVjJzQkNqOTVLVEpSZEFheWFXVU5zbHpXaHJ1NDFWV0xGZ1Ns"
-      "VjFYVnlQQVR0Y01sQUtyWUlLUFFLQmdRQ3R1SnBzQTFRN2llSFFMOWsvRWFqVnR3bmcx"
-      "ekZIcmx4M2lCNFlma2xaUVh4UkJMMnkKcjY0L2dMb2NZUEVKOXR5YXZDSWFwUXFLaUJB"
-      "UUUrTnhTRVJreHh6UHpYZDlpTnlUS1lCV3pKQjlxNzA0TEkveU0KRFRmSjJ3QndrWmJM"
-      "MXY2eUJKdVlPWFpMNGkzTzdUd0pyR0hXTGl0SEEwOFdld2hNNVJZYlpVaXZlUUtCZ1FE"
-      "Wgpnb3RBTjhDOXJzekxrRnBjT1NxSFdzcGM3L0RWM3oxMm5abXg3b1lXRUNuOFpnMzBm"
-      "NWs4OWEza1JVdmZodnd0CjMwYTVmRDM0Vnc2OG9DWWp5cENkMzhIczZRQ3Y3bG4xdXNn"
-      "clVocmlVQlhDVFVzRFNYV3hONmdQNHpxVndiUmgKaEJpdG1ielZVdzNyY3FUK0xmeTVv"
-      "M2FHODFnbGFqeFRuald1SXhjVktRS0JnRWdsVUg4ckp0bFBRUVd2RlMwSHl4dkZyNjNH"
-      "WW0zYUU1cjNvQTlhSnJvdXFTYm5hU2VPa0pWWDg4cW1PTXM1NlRpTlFrTXhxWlgwZ1Rm"
-      "aCs2Q09DQkdqR1hsT2cxeFdlNjc1MWV4RWpwMy91MFBrYXhqdUJyWnRnRWgvc200MTdV"
-      "Yk95Z2l0SlM3UEpBenpoY2xzRUM3U1U5VFVBcXgyeHFrZGtwNkc3KzlMMXVDCi0tLS0t"
-      "RU5EIFBSSVZBVEUgS0VZLS0tLS0K";
+  static const String _keyHeader = "-----BEGIN " "PRIVATE KEY-----\n";
+  static const String _keyFooter = "\n-----END " "PRIVATE KEY-----\n";
+
+  static const String _keyBody = '''MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDueZwnCAZ7TUsh
+0/hVhtv0YW3kNX7CVFzCYzuFrEYD/GRhenOSl95l8cHWd5tAz+8EGGBH6XooBXu/
+K2/PBSDd2WoFf3TASuqClY+VaXurb92d/bu+ERAnWh1pwHSgB8+DZvAH2Kr5f1GI
+mREm2mmyJnTN/67ALdERx3gM1ZzwhoMMFPtCe0qEAGd/2kbRRVDgpHRDZeAak04r
+OIr3MlrGgOivRQfwpIt/4Fo95z1hV6v9nmanpgx7OUP2RhSQ1yHfOWbpcAzLtFEP
+l7jEXhAxXcMBkdiiwpEXaNkLzJ1oxzQpug7W/HzO9eXWlp075Xyur+JTBLe8FXuV
+Zg3qQ3rVAgMBAAECggEAAYEv7Ike7Vk7/58kQnni2mRg+p8hyR0aJrnUjs/a8zx8
+76aDoymlJBSF6hIAH0UQl4CF3v5IoIcEVFz0TCSWo/+yrQ00UeBHIYLLEKDFQHwo
+tE39CMJ3zR/C7r9hnP7fns8f9ZS243MbsxZwJsQbBZ47f289DYZcetW82qvgXR4h
+CFQWvP8lfMAoZy/9erH/afuwFesRqEZQmv+iSaKUwN5JRStbDpOPwSqevdGQeP+w
+HiswVgK+SU6HDkyY9ArUTDea0A+zPc1Y+PA0IKSSDM+xyLv+7ynqmert9flhx4Cz
+R6wlPXsjYhQj+zf11Kt1mUuD9cDHyiOqvzV6q069sQKBgQD4+GG0BRWkUxW3PnHZ
+n7MClH7av/8ZFWFebZaW36LMc2vXRf+PZPUhG4vsBTP7/br19JK7ri7xsFRtNv+S
++jlgD8vtwpStbIbV48B9XXQvcXP1PYzpls8YNJdT/WvYmUU9E/pRH7G+pjhQF/oV
+ClZOEo+CxYcCtGDZMgllf110eQKBgQD1NV3M6eOlor4EjLH/MAm5uVscFC0nY1D3
+SRe3QNADDqWLF8f2RBrvW71tBW9IeECzpcyEKCiam1aHm+Q4wcdWDqMB3whhOkkr
+v7KqAeB40CsPb1aNIRfV2sBCj95KTJRdAayaWUNlzWhru41VWLFgSlV1XVyPATtc
+MlAKrYIKPQKBgQCtuJpsA1Q7ieHQL9k/EajVtwng1zFHrlx3iB4YfklZQXxRBL2y
+r64/gLocYPEJ9tyavCIapQqKiBAQ+NxSERkxxzPzXd9iNyTKYBWzJB9q704LI/yM
+DTfJ2wBwkZbL1v6yBJuYOXZL4i3O7TwJrGHWLitHA08WewhM5RYbZUiveQKBgQDZ
+gotAN8C9rszLkFpcOSqHWspc7/DV3Z12nZmx7oYWECn8Zg30f5k89a3kRUvfhvwt
+30a5fD34Vw68oCYjypCd38Hs6QCv7ln1usgrUhriUBXCTUsDSXWxN6gP4zqVwbRh
+hBitmbzVUw3rcqT+Lfy5o3aG81glajxTnjWuIxcVKQKBgEglUH8rJtlPQRwue0Hy
+xvFr63GYm3aE5r3oA9aJrouqSbnaSeOkJVX88qmOMs56TiNQkMxqZX0gTfh+6COC
+GjGXlog1xWe6751exEjp3/u0PkaxjuBrZtgEh/sm417UbOygItJS7PJAzzhclsEC
+7SU9TUAqx2xqkdkp6G7+9L1u''';
 
   static Map<String, dynamic>? _cachedCredentials;
 
   static Map<String, dynamic> get serviceAccountCredentials {
     if (_cachedCredentials != null) return _cachedCredentials!;
-    final String cleanB64 = _pkBase64.replaceAll(RegExp(r'\s+'), '');
-    final String normalized = base64.normalize(cleanB64);
-    final String privateKey = utf8.decode(base64Decode(normalized));
+
+    final String fullKey = "$_keyHeader$_keyBody$_keyFooter";
+
+    print("🔑 [FCM v1] Service Account Key Loaded. Length: ${fullKey.length}");
+    print("🔑 [FCM v1] Private Key:\n$fullKey");
 
     _cachedCredentials = {
       "type": "service_account",
       "project_id": "true-fit-52715",
       "private_key_id": "d6b995a92a948cdee303d4d6bdde3775f91dc9ba",
-      "private_key": privateKey,
+      "private_key": fullKey,
       "client_email": "firebase-adminsdk-fbsvc@true-fit-52715.iam.gserviceaccount.com",
       "client_id": "112978429352499412256",
       "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -80,6 +76,7 @@ class FcmV1Service {
       final String accessToken = client.credentials.accessToken.data;
       client.close();
 
+      print("✅ [FCM v1] Successfully generated OAuth2 Access Token (${accessToken.substring(0, 15)}...)");
       return accessToken;
     } catch (e) {
       print("❌ [FCM v1] Error generating OAuth2 access token: $e");
