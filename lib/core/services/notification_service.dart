@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/foundation.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:truefit_coaches/core/theme/app_theme.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -88,7 +91,6 @@ class NotificationService {
     // 5. Handle notification tap when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print("Notification tapped while in background: ${message.data}");
-      // Navigate or perform action based on message.data
     });
 
     // 6. Handle notification tap when app is opened from terminated state
@@ -101,36 +103,114 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
-  static Future<void> updateToken(String userId) async {
+  /// Updates FCM token in 'Gym_Coaches' for [userId].
+  /// If [context] is supplied and an error occurs during FCM token retrieval,
+  /// displays an error dialog with full details.
+  static Future<String?> updateToken(String userId, {BuildContext? context}) async {
     try {
-      await _messaging.subscribeToTopic('coaches');
-    } catch (e) {
-      print("Error subscribing to coaches topic: $e");
-    }
-
-    try {
-      final token = await _messaging.getToken();
-      if (token != null) {
-        await FirebaseFirestore.instance
-            .collection('Gym_Coaches')
-            .doc(userId)
-            .set({
-              'fcm_token': token,
-              'fcmToken': token,
-            }, SetOptions(merge: true));
+      try {
+        await _messaging.subscribeToTopic('coaches');
+      } catch (e) {
+        print("Error subscribing to coaches topic: $e");
       }
-    } catch (e) {
-      print("Error saving FCM token: $e");
-    }
 
-    _messaging.onTokenRefresh.listen((newToken) {
-      FirebaseFirestore.instance
+      final String? token = await _messaging.getToken();
+
+      if (token == null || token.trim().isEmpty) {
+        throw Exception("FirebaseMessaging.instance.getToken() returned null or empty token.");
+      }
+
+      await FirebaseFirestore.instance
           .collection('Gym_Coaches')
           .doc(userId)
           .set({
-            'fcm_token': newToken,
-            'fcmToken': newToken,
+            'fcm_token': token.trim(),
+            'fcmToken': token.trim(),
+            'fcm_updated_at': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
-    });
+
+      print("✅ [FCM Token Updated] Gym_Coaches/$userId -> ${token.trim().substring(0, 15)}...");
+
+      _messaging.onTokenRefresh.listen((newToken) {
+        if (newToken.isNotEmpty) {
+          FirebaseFirestore.instance
+              .collection('Gym_Coaches')
+              .doc(userId)
+              .set({
+                'fcm_token': newToken.trim(),
+                'fcmToken': newToken.trim(),
+                'fcm_updated_at': FieldValue.serverTimestamp(),
+              }, SetOptions(merge: true));
+        }
+      });
+
+      return token.trim();
+    } catch (e, stackTrace) {
+      final String fullError = "$e\n\nStackTrace:\n$stackTrace";
+      print("❌ [NotificationService Error] $fullError");
+
+      if (context != null && context.mounted) {
+        _showFcmErrorDialog(context, e.toString(), stackTrace.toString());
+      }
+      return null;
+    }
+  }
+
+  static void _showFcmErrorDialog(BuildContext context, String error, String stackTrace) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(LucideIcons.alertTriangle, color: AppTheme.primaryRed, size: 24),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                "FCM Token Error",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Failed to retrieve or update FCM token in 'Gym_Coaches' collection:",
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.primaryRed.withValues(alpha: 0.5)),
+                ),
+                child: SelectableText(
+                  "$error\n\n$stackTrace",
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("DISMISS", style: TextStyle(color: AppTheme.primaryRed, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 }

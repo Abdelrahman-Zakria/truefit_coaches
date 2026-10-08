@@ -47,7 +47,7 @@ class _MainWrapperState extends State<MainWrapper> {
         context.read<ChatListCubit>().watchConversations(coachId);
         context.read<TimeTrackingCubit>().watchTimeEntries(coachId);
         context.read<RequestsCubit>().watchRequests(coachId);
-        NotificationService.updateToken(coachId);
+        NotificationService.updateToken(coachId, context: context);
       }
     });
   }
